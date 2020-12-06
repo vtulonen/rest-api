@@ -1,0 +1,28 @@
+{
+  "name": "nodejs-backend",
+  "version": "0.1.0",
+  "main": "src/index.js",
+  "author": "vt",
+  "license": "MIT",
+  "dependencies": {
+    "babel-polyfill": "^6.26.0",
+    "koa": "^2.13.0",
+    "koa-router": "^10.0.0"
+  },
+  "scripts": {
+    "dev": "nodemon src/index.js -w src --exec babel-node",
+    "lint:es": "eslint src",
+    "test": "yarn lint:es",
+    "test:watch": "nodemon -w src --exec 'yarn test'"
+  },
+  "devDependencies": {
+    "babel-cli": "^6.26.0",
+    "babel-eslint": "^10.1.0",
+    "babel-preset-env": "^1.7.0",
+    "eslint": "^7.15.0",
+    "eslint-config-airbnb-base": "^14.2.1",
+    "eslint-import-resolver-node": "^0.3.4",
+    "eslint-plugin-import": "^2.22.1",
+    "nodemon": "^2.0.6"
+  }
+}
