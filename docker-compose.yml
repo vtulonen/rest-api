@@ -19,4 +19,18 @@ services:
     volumes:
       - ./backend:/opt/app
     restart: always
+  db:
+    image: mysql:8.0.3
+    volumes:
+      - /var/lib/mysql
+    environment:
+      MYSQL_ROOT_PASSWORD: db_rootpass
+      MYSQL_DATABASE: db_1
+    restart: always
+  mywebsql:
+    image: quantumobject/docker-mywebsql
+    ports:
+      - "9001:80"
+    restart: always
+
 

@@ -7,7 +7,8 @@
   "dependencies": {
     "babel-polyfill": "^6.26.0",
     "koa": "^2.13.0",
-    "koa-router": "^10.0.0"
+    "koa-router": "^10.0.0",
+    "mysql2": "^2.2.5"
   },
   "scripts": {
     "dev": "nodemon src/index.js -w src --exec babel-node",
