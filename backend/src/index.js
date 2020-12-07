@@ -4,7 +4,15 @@ import Router from 'koa-router';
 import mysql from 'mysql2/promise';
 import KoaBody from 'koa-bodyparser';
 import Url from 'url';
+import { connectionSettings } from './settings';
+import { databaseReady } from './helpers';
+import { initDB } from './fixtures';
 
+// Initialize database
+(async () => {
+  await databaseReady();
+  await initDB();
+})();
 
 // The port that this server will run on, defaults to 9000
 const port = process.env.PORT || 9000;
@@ -19,19 +27,6 @@ const museums = new Router();
 
 // Define API path
 const apiPath = '/api/v1';
-
-
-
-
-
-
-const connectionSettings = {
-  host: 'db',
-  user: 'root',
-  database: 'db_1',
-  password: 'db_rootpass',
-  namedPlaceholders: true,
-};
 
 test.get(`${apiPath}/test`, async (ctx) => {
   try {
@@ -53,7 +48,6 @@ test.get(`${apiPath}/test`, async (ctx) => {
     ctx.throw(500, error);
   }
 });
-
 
 // Middleware for checking accept headers
 const checkAccept = async (ctx, next) => {
@@ -136,7 +130,6 @@ museums.get(museumsPath, checkAccept, async (ctx) => {
     console.error('Error occurred:', error);
     ctx.throw(500, error);
   }
-
 });
 
 // GET /resource/:id
@@ -162,7 +155,6 @@ museums.get(museumPath, checkAccept, async (ctx) => {
     console.error('Error occurred:', error);
     ctx.throw(500, error);
   }
-
 });
 
 // POST /resource
@@ -193,7 +185,7 @@ museums.post(museumsPath, checkAccept, checkContent, koaBody, async (ctx) => {
   try {
     const conn = await mysql.createConnection(connectionSettings);
 
-    // Insert a new todo
+    // Insert a new museum
     const [status] = await conn.execute(`
           INSERT INTO museums (museum, country, city)
           VALUES (:museum, :country, :city);
@@ -220,7 +212,6 @@ museums.post(museumsPath, checkAccept, checkContent, koaBody, async (ctx) => {
     console.error('Error occurred:', error);
     ctx.throw(500, error);
   }
-
 });
 
 // PUT /resource/:id
@@ -247,7 +238,6 @@ museums.put(museumPath, checkAccept, checkContent, koaBody, async (ctx) => {
   } else if (typeof city !== 'string') {
     ctx.throw(400, 'body.city must be string');
   }
-  
 
   try {
     const conn = await mysql.createConnection(connectionSettings);
@@ -257,14 +247,19 @@ museums.put(museumPath, checkAccept, checkContent, koaBody, async (ctx) => {
            UPDATE museums
            SET museum = :museum, country = :country, city = :city
            WHERE id = :id;
-         `, { id, museum, country, city });
+         `,
+          { 
+            id, museum, country, city 
+          });
 
-    if (status.affectedRows === 0) {
-      // If the resource does not already exist, create it
+    if (status.affectedRows === 0) {// If the resource does not already exist, create it
       await conn.execute(`
           INSERT INTO museums (id, museum, country, city)
           VALUES (:id, :museum, :country, :city);
-        `, { id, museum, country, city });
+        `, 
+        { 
+          id, museum, country, city 
+        });
     }
 
     // Get the todo
@@ -280,7 +275,6 @@ museums.put(museumPath, checkAccept, checkContent, koaBody, async (ctx) => {
     console.error('Error occurred:', error);
     ctx.throw(500, error);
   }
-
 });
 
 // DELETE /resource/:id
@@ -310,9 +304,7 @@ museums.del(museumPath, async (ctx) => {
     console.error('Error occurred:', error);
     ctx.throw(500, error);
   }
-
 });
-
 
 app.use(test.routes());
 app.use(test.allowedMethods());
