@@ -10,3 +10,9 @@ export const koaBody = new KoaBody();
 
 export const museumsPath = `${apiPath}/museums`;
 export const museumPath = `${museumsPath}/:id`;
+
+export const artistsPath = `${apiPath}/artists`;
+export const artistPath = `${artistsPath}/:id`;
+
+export const artworksPath = `${apiPath}/artworks`;
+export const artworkPath = `${artworksPath}/:id`;

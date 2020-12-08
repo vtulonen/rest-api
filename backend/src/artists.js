@@ -1,16 +1,15 @@
 import Router from 'koa-router';
 import mysql from 'mysql2/promise';
-
 import Url from 'url';
-import { koaBody, museumPath, museumsPath } from './constants';
+import { koaBody, artistPath, artistsPath } from './constants';
 import { connectionSettings } from './settings';
 import { checkAccept, checkContent } from './middleware';
 
-const museums = new Router();
-// Define museums paths
+const artists = new Router();
+// Define artists paths
 
 // GET /resource
-museums.get(museumsPath, checkAccept, async (ctx) => {
+artists.get(artistsPath, checkAccept, async (ctx) => {
   const url = Url.parse(ctx.url, true);
   const { sort } = url.query;
 
@@ -46,17 +45,17 @@ museums.get(museumsPath, checkAccept, async (ctx) => {
     }
     return query;
   };
-  const orderBy = parseSortQuery({ urlSortQuery: sort, whitelist: ['id', 'museum', 'country', 'city'] });
+  const orderBy = parseSortQuery({ urlSortQuery: sort, whitelist: ['id', 'firstName', 'lastName', 'nationality'] });
 
   try {
     const conn = await mysql.createConnection(connectionSettings);
     const [data] = await conn.execute(`
         SELECT *
-        FROM museums
+        FROM artists
         ${orderBy}
       `);
 
-    // Return all museums
+    // Return all artists
     ctx.body = data;
   } catch (error) {
     console.error('Error occurred:', error);
@@ -65,7 +64,7 @@ museums.get(museumsPath, checkAccept, async (ctx) => {
 });
 
 // GET /resource/:id
-museums.get(museumPath, checkAccept, async (ctx) => {
+artists.get(artistPath, checkAccept, async (ctx) => {
   const { id } = ctx.params;
   console.log('.get id contains:', id);
 
@@ -77,7 +76,7 @@ museums.get(museumPath, checkAccept, async (ctx) => {
     const conn = await mysql.createConnection(connectionSettings);
     const [data] = await conn.execute(`
           SELECT *
-          FROM museums
+          FROM artists
           WHERE id = :id;
         `, { id });
 
@@ -90,44 +89,37 @@ museums.get(museumPath, checkAccept, async (ctx) => {
 });
 
 // POST /resource
-museums.post(museumsPath, checkAccept, checkContent, koaBody, async (ctx) => {
-  const { museum, country, city } = ctx.request.body;
-  console.log('.post museum contains:', museum);
-  console.log('.post country contains:', country);
-  console.log('.post city contains:', city);
+artists.post(artistsPath, checkAccept, checkContent, koaBody, async (ctx) => {
+  const { firstName, lastName, nationality } = ctx.request.body;
 
-  if (typeof museum === 'undefined') {
-    ctx.throw(400, 'body.museum is required');
-  } else if (typeof museum !== 'string') {
-    ctx.throw(400, 'body.museum must be string');
-  }
-
-  if (typeof country === 'undefined') {
-    ctx.throw(400, 'body.country is required');
-  } else if (typeof country !== 'string') {
-    ctx.throw(400, 'body.country must be string');
-  }
-
-  if (typeof city === 'undefined') {
-    ctx.throw(400, 'body.city is required');
-  } else if (typeof city !== 'string') {
-    ctx.throw(400, 'body.city must be string');
+  if (typeof firstName === 'undefined') {
+    ctx.throw(400, 'body.firstName is required');
+  } else if (typeof firstName !== 'string') {
+    ctx.throw(400, 'body.firstName must be string');
+  } else if (typeof lastName === 'undefined') {
+    ctx.throw(400, 'body.lastName is required');
+  } else if (typeof lastName !== 'string') {
+    ctx.throw(400, 'body.lastName must be string');
+  } else if (typeof nationality !== 'string') {
+    ctx.throw(400, 'body.nationality must be string');
+  } else if (typeof nationality !== 'string') {
+    ctx.throw(400, 'body.nationality must be string');
   }
 
   try {
     const conn = await mysql.createConnection(connectionSettings);
 
-    // Insert a new museum
+    // Insert a new artist
     const [status] = await conn.execute(`
-          INSERT INTO museums (museum, country, city)
-          VALUES (:museum, :country, :city);
-        `, { museum, country, city });
+          INSERT INTO artists (firstName, lastName, nationality)
+          VALUES (:firstName, :lastName, :nationality);
+        `, { firstName, lastName, nationality });
     const { insertId } = status;
 
     // Get the new todo
     const [data] = await conn.execute(`
           SELECT *
-          FROM museums
+          FROM artists
           WHERE id = :id;
         `, { id: insertId });
 
@@ -135,7 +127,7 @@ museums.post(museumsPath, checkAccept, checkContent, koaBody, async (ctx) => {
     ctx.status = 201;
 
     // Set the Location header to point to the new resource
-    const newUrl = `${ctx.host}${Router.url(museumPath, { id: insertId })}`;
+    const newUrl = `${ctx.host}${Router.url(artistPath, { id: insertId })}`;
     ctx.set('Location', newUrl);
 
     // Return the new todo
@@ -147,57 +139,53 @@ museums.post(museumsPath, checkAccept, checkContent, koaBody, async (ctx) => {
 });
 
 // PUT /resource/:id
-museums.put(museumPath, checkAccept, checkContent, koaBody, async (ctx) => {
+artists.put(artistPath, checkAccept, checkContent, koaBody, async (ctx) => {
   const { id } = ctx.params;
-  const { museum, country, city } = ctx.request.body;
-  console.log('.put id contains:', id);
-  console.log('.put museum contains:', museum);
-  console.log('.put done contains:', country);
-  console.log('.put done contains:', city);
+  const { firstName, lastName, nationality } = ctx.request.body;
 
   if (isNaN(id) || id.includes('.')) {
     ctx.throw(400, 'id must be an integer');
-  } else if (typeof museum === 'undefined') {
-    ctx.throw(400, 'body.museum is required');
-  } else if (typeof museum !== 'string') {
-    ctx.throw(400, 'body.museum must be string');
-  } else if (typeof country === 'undefined') {
-    ctx.throw(400, 'body.country is required');
-  } else if (typeof country !== 'string') {
-    ctx.throw(400, 'body.country must be string');
-  } else if (typeof city === 'undefined') {
-    ctx.throw(400, 'body.city is required');
-  } else if (typeof city !== 'string') {
-    ctx.throw(400, 'body.city must be string');
+  } else if (typeof firstName === 'undefined') {
+    ctx.throw(400, 'body.firstName is required');
+  } else if (typeof firstName !== 'string') {
+    ctx.throw(400, 'body.firstName must be string');
+  } else if (typeof lastName === 'undefined') {
+    ctx.throw(400, 'body.lastName is required');
+  } else if (typeof lastName !== 'string') {
+    ctx.throw(400, 'body.lastName must be string');
+  } else if (typeof nationality === 'undefined') {
+    ctx.throw(400, 'body.nationality is required');
+  } else if (typeof nationality !== 'string') {
+    ctx.throw(400, 'body.nationality must be string');
   }
 
   try {
     const conn = await mysql.createConnection(connectionSettings);
 
-    // Update the artwork
+    // Update the todo
     const [status] = await conn.execute(`
-           UPDATE museums
-           SET museum = :museum, country = :country, city = :city
+           UPDATE artists
+           SET firstName = :firstName, lastName = :lastName, nationality = :nationality
            WHERE id = :id;
          `,
     {
-      id, museum, country, city,
+      id, firstName, lastName, nationality,
     });
 
     if (status.affectedRows === 0) { // If the resource does not already exist, create it
       await conn.execute(`
-          INSERT INTO museums (id, museum, country, city)
-          VALUES (:id, :museum, :country, :city);
+          INSERT INTO artists (id, artist, nationality)
+          VALUES (:id, :firstName, :lastName, :nationality);
         `,
       {
-        id, museum, country, city,
+        id, firstName, lastName, nationality,
       });
     }
 
-    // Get the museum
+    // Get the artist
     const [data] = await conn.execute(`
            SELECT *
-           FROM museums
+           FROM artists
            WHERE id = :id;
          `, { id });
 
@@ -210,7 +198,7 @@ museums.put(museumPath, checkAccept, checkContent, koaBody, async (ctx) => {
 });
 
 // DELETE /resource/:id
-museums.del(museumPath, async (ctx) => {
+artists.del(artistPath, async (ctx) => {
   const { id } = ctx.params;
   console.log('.del id contains:', id);
 
@@ -221,7 +209,7 @@ museums.del(museumPath, async (ctx) => {
   try {
     const conn = await mysql.createConnection(connectionSettings);
     const [status] = await conn.execute(`
-          DELETE FROM museums
+          DELETE FROM artists
           WHERE id = :id;
         `, { id });
 
@@ -238,4 +226,4 @@ museums.del(museumPath, async (ctx) => {
   }
 });
 
-export default museums;
+export default artists;
