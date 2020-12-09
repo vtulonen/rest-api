@@ -26,7 +26,30 @@
 #
 #
 #===============================================================
+echo  "----------- Haetaan koodi versionhallinnasta"
 
+git clone https://github.com/vtulonen/rest-api.git
+
+cd rest-api
+pwd
+
+#echo; echo " ----------- Asennetaan sovellus"
+
+cd backend
+pwd
+yarn install
+cd ..
+
+echo; echo " ----------- Käynnistetään docker"
+
+sudo docker-compose up -d
+while ! curl http://localhost:9000/api/v1/museums/
+do
+  echo "$(date) - still trying"
+  sleep 1
+done
+echo "$(date) - connected successfully"
+sleep 2
 echo;
 echo; echo " ----------- Viedaan kantaan dataa, museoita:"
 
